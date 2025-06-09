@@ -1,0 +1,6 @@
+openai
+asyncio
+python-dotenv
+pre-commit
+ruff
+pytest-asyncio

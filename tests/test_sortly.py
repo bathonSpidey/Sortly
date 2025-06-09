@@ -16,4 +16,4 @@ class TestSortly:
             f"Sort this folder: {root_folder_path} with the contents: {files}."
         )
         result = sortly.sort_folder(user_prompt=user_message)
-        assert True
+        assert result is not None

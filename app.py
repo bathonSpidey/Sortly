@@ -30,8 +30,8 @@ QFont("Segoe UI", 22, QFont.Bold)
 class SortlyApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowIcon(QIcon("assets/sortly-icon.png"))
         self.setWindowTitle("Sortly")
+        self.setWindowIcon(QIcon("icons/sortly.png"))
         self.setGeometry(100, 100, 600, 400)
 
         self.is_dark = False 
@@ -41,24 +41,41 @@ class SortlyApp(QWidget):
         main_layout.setSpacing(15)
         self.setLayout(main_layout)
 
+        # Title row layout with centered title and right-aligned theme button
         title_row = QHBoxLayout()
-        title_row.addStretch(1)
+
+        # Title label (expand to fill space, centered alignment)
         self.title_label = QLabel("Sortly: Your Folder Organizer Assistant")
         self.title_label.setFont(QFont("Segoe UI", 22, QFont.Bold))
         self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        title_row.addWidget(self.title_label, stretch=10)
+        
 
-        # Theme toggle button (right-aligned)
+        # Container layout to help keep alignment clean
+        title_container = QHBoxLayout()
+        title_container.addStretch()
+        title_container.addWidget(self.title_label)
+        title_container.addStretch()
+
+        # Theme toggle button
         self.theme_button = QPushButton()
-        self.theme_button.setIcon(QIcon("icons/moon.png"))
+        self.theme_button.setFont(QFont("Segoe UI Emoji", 16))
         self.theme_button.setObjectName("theme_button")
+        self.theme_button.setIcon(QIcon("icons/moon.png"))
         self.theme_button.setFixedSize(40, 40)
         self.theme_button.clicked.connect(self.toggle_theme)
         self.theme_button.setToolTip("Toggle Dark/Light Theme")
-        title_row.addWidget(self.theme_button)
 
+        # Main title row with title in center and button on right
+        title_row.addLayout(title_container, stretch=8)
+        title_row.addWidget(self.theme_button, alignment=Qt.AlignRight)
+
+        # Add title row to the main layout
         main_layout.addLayout(title_row)
+        title_separator = QLabel()
+        title_separator.setFixedHeight(1)
+        title_separator.setStyleSheet("background-color: #cccccc;" if not self.is_dark else "background-color: #555;")
+        main_layout.addWidget(title_separator)
         
         self.api_key_input = os.getenv("OPENAI_API_KEY")
         if not os.getenv("OPENAI_API_KEY"):
@@ -88,7 +105,6 @@ class SortlyApp(QWidget):
         )
         main_layout.addWidget(self.text_input)
 
-        # Sort button
         self.sort_button = QPushButton("Sort")
         self.sort_button.clicked.connect(self.sort_files)
         main_layout.addWidget(self.sort_button, alignment=Qt.AlignCenter)

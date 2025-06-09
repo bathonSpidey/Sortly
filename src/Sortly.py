@@ -16,7 +16,6 @@ class Sortly:
         base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/",
     ):
         self.api_key = api_key
-        print(f"Using model: {model} with base URL: {base_url} api key {api_key}")
         self.model = model
         self.agent = OpenAI(api_key=self.api_key, base_url=base_url)
 

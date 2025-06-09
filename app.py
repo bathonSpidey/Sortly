@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QDialog,
 )
+from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from src.Sortly import Sortly
@@ -22,39 +23,43 @@ dotenv.load_dotenv(override=True)
 print("Environment variables loaded.")
 if not os.getenv("OPENAI_API_KEY"):
     print("Warning: OPENAI_API_KEY is not set in the environment variables.")
+    
+QFont("Segoe UI", 22, QFont.Bold)
 
 
 class SortlyApp(QWidget):
     def __init__(self):
         super().__init__()
+        self.setWindowIcon(QIcon("assets/sortly-icon.png"))
         self.setWindowTitle("Sortly")
         self.setGeometry(100, 100, 600, 400)
 
-        self.is_dark = False  # Light theme by default
+        self.is_dark = False 
 
         main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(15)
         self.setLayout(main_layout)
 
-        # Title row with toggle on right
         title_row = QHBoxLayout()
+        title_row.addStretch(1)
         self.title_label = QLabel("Sortly: Your Folder Organizer Assistant")
-        self.title_label.setFont(QFont("Arial", 24, QFont.Bold))
-        self.title_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.title_label.setFont(QFont("Segoe UI", 22, QFont.Bold))
+        self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        title_row.addWidget(self.title_label, stretch=10)
 
-        self.theme_button = QPushButton("🌙")
+        # Theme toggle button (right-aligned)
+        self.theme_button = QPushButton()
+        self.theme_button.setIcon(QIcon("icons/moon.png"))
         self.theme_button.setObjectName("theme_button")
         self.theme_button.setFixedSize(40, 40)
         self.theme_button.clicked.connect(self.toggle_theme)
         self.theme_button.setToolTip("Toggle Dark/Light Theme")
-
-        title_row.addWidget(self.title_label)
-        title_row.addStretch()
         title_row.addWidget(self.theme_button)
 
         main_layout.addLayout(title_row)
         
-        # API Key prompt if not in environment
         self.api_key_input = os.getenv("OPENAI_API_KEY")
         if not os.getenv("OPENAI_API_KEY"):
             self.api_key_input = QTextEdit()
@@ -62,12 +67,10 @@ class SortlyApp(QWidget):
             self.api_key_input.setFixedHeight(40)
             main_layout.addWidget(self.api_key_input)
 
-            # Button to save API key
             self.api_key_button = QPushButton("Save API Key")
             self.api_key_button.clicked.connect(self.save_api_key)
             main_layout.addWidget(self.api_key_button, alignment=Qt.AlignCenter)
 
-        # Folder label
         self.folder_label = QLabel("No folder selected")
         self.folder_label.setWordWrap(True)
         self.folder_label.setAlignment(Qt.AlignCenter)
@@ -110,12 +113,10 @@ class SortlyApp(QWidget):
     def toggle_theme(self):
         self.is_dark = not self.is_dark
         self.apply_theme()
-        self.theme_button.setText("☀️" if self.is_dark else "🌙")
-        self.theme_button.setStyleSheet(
-            "background-color: white; color: black;"
-            if self.is_dark
-            else "background-color: black; color: white;"
-        )
+        if self.is_dark:
+            self.theme_button.setIcon(QIcon("icons/sun.png"))
+        else:
+            self.theme_button.setIcon(QIcon("icons/moon.png"))
 
     def apply_theme(self):
         if self.is_dark:
@@ -154,70 +155,120 @@ class SortlyApp(QWidget):
             return
 
         user_prompt = self.text_input.toPlainText()
-        user_message = f"Sort this folder: {self.folder_path} with the contents: {os.listdir(self.folder_path)}."
-        if user_prompt:
-            user_message = f"Sort this folder: {self.folder_path} with the contents: {os.listdir(self.folder_path)}. {user_prompt}"
-        message = sortly.sort_folder(user_prompt=user_message)
-        if message is None:
-            QMessageBox.warning(self, "Error", "Failed to sort files. Please check the API key and try again.")
-            return
-        self.show_long_message("Done", message)
+        all_files = os.listdir(self.folder_path)
+        chunks = [all_files[i:i + 40] for i in range(0, len(all_files), 40)]
 
+        for idx, chunk in enumerate(chunks, start=1):
+            user_message = f"Sort this folder: {self.folder_path} with the contents: {chunk}."
+            if user_prompt:
+                user_message += f" {user_prompt}"
+
+            message = sortly.sort_folder(user_prompt=user_message)
+
+            if message is None:
+                QMessageBox.warning(self, "Error", "Failed to sort files. Please check the API key and try again.")
+                return
+
+            title = f"Chunk {idx}" if len(chunks) > 1 else "Done"
+            self.show_long_message(title, message)
     def dark_theme(self):
         return """
         QWidget {
-            background-color: #2e2e2e;
-            color: #ffffff;
-            font-family: Arial;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
         }
         QTextEdit {
-            background-color: #1e1e1e;
-            color: white;
-            border: 1px solid #666;
-            border-radius: 5px;
+            background-color: #2c2c2c;
+            color: #ffffff;
+            border: 1px solid #444444;
+            border-radius: 10px;
+            padding: 8px;
         }
         QLabel {
-            color: #f0f0f0;
+            color: #e0e0e0;
         }
-        QPushButton:not(#theme_button) {
-            background-color: #4e9a06;
+        QPushButton {
+            background-color: #3a6ea5;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 8px;
+            font-weight: bold;
         }
-        QPushButton:hover:not(#theme_button) {
-            background-color: #5cbf0c;
+        QPushButton:hover {
+            background-color: #558ed5;
+        }
+        QPushButton#theme_button {
+            background-color: transparent;
+            font-size: 20px;
+            border: none;
+            color: #e0e0e0;
+        }
+        QPushButton#theme_button:hover {
+            color: #ffffff;
+        }
+        QPushButton#theme_button {
+            background-color: #444444;
+            font-size: 20px;
+            border-radius: 6px;
+            color: white;
+        }
+        QPushButton#theme_button:hover {
+            background-color: #666666;
         }
         """
 
     def light_theme(self):
         return """
         QWidget {
-            background-color: #ffffff;
-            color: #000000;
-            font-family: Arial;
+            background-color: #f9f9f9;
+            color: #202020;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
         }
         QTextEdit {
-            background-color: #f5f5f5;
-            color: black;
-            border: 1px solid #999;
-            border-radius: 5px;
+            background-color: #ffffff;
+            color: #202020;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 8px;
         }
         QLabel {
             color: #202020;
         }
-        QPushButton:not(#theme_button) {
-            background-color: #4e9a06;
+        QPushButton {
+            background-color: #3a6ea5;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 8px;
+            font-weight: bold;
         }
-        QPushButton:hover:not(#theme_button) {
-            background-color: #5cbf0c;
+        QPushButton:hover {
+            background-color: #5b8fd1;
+        }
+        QPushButton#theme_button {
+            background-color: transparent;
+            font-size: 20px;
+            border: none;
+            color: #202020;
+        }
+        QPushButton#theme_button:hover {
+            color: #000000;
+        }
+        QPushButton#theme_button {
+            background-color: #e0e0e0;
+            font-size: 20px;
+            border-radius: 6px;
+            color: #333;
+        }
+        QPushButton#theme_button:hover {
+            background-color: #cfcfcf;
         }
         """
+
 
 
 if __name__ == "__main__":

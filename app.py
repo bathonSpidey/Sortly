@@ -140,12 +140,10 @@ class SortlyApp(QWidget):
         
         
     def save_api_key(self):
-        api_key = self.api_key_input.toPlainText().strip()
+        api_key = self.api_key_input.text().strip()
         if api_key:
             os.environ["api"] = api_key
             QMessageBox.information(self, "API Key Saved", "API key has been saved temporarily for this session.")
-            self.api_key_input.hide()
-            self.api_key_button.hide()
         else:
             QMessageBox.warning(self, "Invalid", "Please enter a valid API key.")
             

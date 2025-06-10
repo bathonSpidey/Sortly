@@ -1,5 +1,8 @@
 openai
 asyncio
+pyinstaller
+LLMClassBasedToolRegistry
+pyside6
 python-dotenv
 pre-commit
 ruff

@@ -13,6 +13,8 @@ from PySide6.QtWidgets import (
     QTextEdit,
     QSizePolicy,
     QDialog,
+    QLineEdit,
+    QComboBox,
 )
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt
@@ -32,7 +34,7 @@ class SortlyApp(QWidget):
         super().__init__()
         self.setWindowTitle("Sortly")
         self.setWindowIcon(QIcon("icons/sortly.png"))
-        self.setGeometry(100, 100, 600, 400)
+        self.setGeometry(100, 100, 800, 400)
 
         self.is_dark = False 
 
@@ -77,16 +79,37 @@ class SortlyApp(QWidget):
         title_separator.setStyleSheet("background-color: #cccccc;" if not self.is_dark else "background-color: #555;")
         main_layout.addWidget(title_separator)
         
-        self.api_key_input = os.getenv("OPENAI_API_KEY")
-        if not os.getenv("OPENAI_API_KEY"):
-            self.api_key_input = QTextEdit()
-            self.api_key_input.setPlaceholderText("Enter your API key here...")
-            self.api_key_input.setFixedHeight(40)
-            main_layout.addWidget(self.api_key_input)
+        current_key = os.getenv("OPENAI_API_KEY", "Please set your API key in the environment variables.")
 
-            self.api_key_button = QPushButton("Save API Key")
-            self.api_key_button.clicked.connect(self.save_api_key)
-            main_layout.addWidget(self.api_key_button, alignment=Qt.AlignCenter)
+    # Prepare display key: first 4 chars + '******' if key is longer than 4, else show as is
+        api_row = QHBoxLayout()
+        if len(current_key) > 4 and "Please" not in current_key:
+            display_key = current_key[:4] + "******"
+        else:
+            display_key = current_key
+
+        # Create QLineEdit initialized with masked key
+        self.api_key_input = QLineEdit()
+        self.api_key_input.setText(display_key)
+        self.api_key_input.setPlaceholderText("Enter your API key here...")
+        self.api_key_input.setFixedHeight(30)
+        self.api_key_input.setMinimumWidth(250)
+        api_row.addWidget(self.api_key_input)
+        self.api_key_button = QPushButton("Set new API Key")
+        self.api_key_button.setFixedHeight(40)
+        self.api_key_button.clicked.connect(self.save_api_key)
+        api_row.addWidget(self.api_key_button)
+        
+        option_label = QLabel("Select model:")
+        self.option_dropdown = QComboBox()
+        self.option_dropdown.addItems(["gemini-2.0-flash", "gpt-4.1", "o4-mini", "local_lm_studio"])
+        self.option_dropdown.setFixedWidth(140)
+        self.option_dropdown.currentTextChanged.connect(self.on_option_changed)
+        api_row.addStretch()  # Push dropdown to right
+        api_row.addWidget(option_label)
+        api_row.addWidget(self.option_dropdown)
+
+        main_layout.addLayout(api_row)
 
         self.folder_label = QLabel("No folder selected")
         self.folder_label.setWordWrap(True)
@@ -125,6 +148,9 @@ class SortlyApp(QWidget):
             self.api_key_button.hide()
         else:
             QMessageBox.warning(self, "Invalid", "Please enter a valid API key.")
+            
+    def on_option_changed(self, text):
+        print(f"Dropdown option changed to: {text}")
 
     def toggle_theme(self):
         self.is_dark = not self.is_dark

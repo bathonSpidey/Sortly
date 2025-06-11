@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
     QComboBox,
 )
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QFont
 from src.Sortly import Sortly
 
@@ -28,6 +28,37 @@ if not os.getenv("OPENAI_API_KEY"):
     
 QFont("Segoe UI", 22, QFont.Bold)
 
+
+class SortWorker(QThread):
+    progress = Signal(str)
+    finished = Signal(str)
+
+    def __init__(self, folder_path, user_prompt, sortly):
+        super().__init__()
+        self.folder_path = folder_path
+        self.user_prompt = user_prompt
+        self.sortly = sortly
+
+    def run(self):
+        all_files = os.listdir(self.folder_path)
+        chunks = [all_files[i:i + 40] for i in range(0, len(all_files), 40)]
+
+        for idx, chunk in enumerate(chunks, start=1):
+            user_message = f"Sort this folder: {self.folder_path} with the contents: {chunk}."
+            if self.user_prompt:
+                user_message += f" {self.user_prompt}"
+
+            self.progress.emit(f"Processing chunk {idx} of {len(chunks)}...")
+
+            message = self.sortly.sort_folder(user_prompt=user_message)
+
+            if message is None:
+                self.progress.emit("Error: Failed to sort files. Check API key.")
+                return
+
+            self.progress.emit(f"Chunk {idx} done: {message}")
+
+        self.finished.emit("All chunks sorted.")
 
 class SortlyApp(QWidget):
     def __init__(self):
@@ -189,28 +220,30 @@ class SortlyApp(QWidget):
         dialog.exec()
 
     def sort_files(self):
-        sortly = Sortly(os.getenv("OPENAI_API_KEY"))
-        if not self.folder_path:
-            QMessageBox.warning(self, "Warning", "Please select a folder first.")
-            return
-
-        user_prompt = self.text_input.toPlainText()
-        all_files = os.listdir(self.folder_path)
-        chunks = [all_files[i:i + 40] for i in range(0, len(all_files), 40)]
-
-        for idx, chunk in enumerate(chunks, start=1):
-            user_message = f"Sort this folder: {self.folder_path} with the contents: {chunk}."
-            if user_prompt:
-                user_message += f" {user_prompt}"
-
-            message = sortly.sort_folder(user_prompt=user_message)
-
-            if message is None:
-                QMessageBox.warning(self, "Error", "Failed to sort files. Please check the API key and try again.")
+        try:
+            if not self.folder_path:
+                QMessageBox.warning(self, "Warning", "Please select a folder first.")
                 return
 
-            title = f"Chunk {idx}" if len(chunks) > 1 else "Done"
-            self.show_long_message(title, message)
+            self.text_input.append("Starting sort...")
+
+            user_prompt = self.text_input.toPlainText()
+            sortly = Sortly(os.getenv("OPENAI_API_KEY"))
+
+            self.worker = SortWorker(self.folder_path, user_prompt, sortly)
+            self.worker.progress.connect(self.update_progress)
+            self.worker.finished.connect(self.sorting_finished)
+            self.worker.start()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
+            self.text_input.append(f"Error: {str(e)}")
+        
+    def update_progress(self, message):
+        self.text_input.append(message)
+
+    def sorting_finished(self, message):
+        self.text_input.append(message)
+        QMessageBox.information(self, "Done", message)
     def dark_theme(self):
         return """
         QWidget {

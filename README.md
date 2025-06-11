@@ -40,7 +40,7 @@ You can double click and run it. Have fun cleaning your folders
 
 ## 📥 You can also directly download the installer (However this is experimental and your API key might fail)
 
-➡️ [Download the latest Sortly.zip](https://github.com/bathonSpidey/Sortly/releases/latest
+➡️ [Download the latest Sortly.zip](https://github.com/bathonSpidey/Sortly/releases/latest)
 
 ## 📘 System Behavior
 Sortly instructs the AI agent to:

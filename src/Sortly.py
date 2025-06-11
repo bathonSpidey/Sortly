@@ -49,7 +49,6 @@ class Sortly:
                 ],
                 tools=tools,
                 temperature=0.7,
-                timeout=20,
             )
             message = result.choices[0].message
             if message.tool_calls:
@@ -60,7 +59,7 @@ class Sortly:
                 return message
         except Exception as e:
             print(f"Error during sorting: {e}")
-            return f"An error occurred while sorting or timed out after 20 seconds with {self.api_key}: {e}"
+            return f"An error occurred while sorting or timed out after 20 seconds with {self.api_key} with model {self.model}: {e}"
 
     def call_tool(self, tool_call):
         tool_name = tool_call.function.name

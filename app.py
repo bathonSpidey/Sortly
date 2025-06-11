@@ -40,25 +40,30 @@ class SortWorker(QThread):
         self.sortly = sortly
 
     def run(self):
-        all_files = os.listdir(self.folder_path)
-        chunks = [all_files[i:i + 40] for i in range(0, len(all_files), 40)]
+        try:
+            all_files = os.listdir(self.folder_path)
+            chunks = [all_files[i:i + 40] for i in range(0, len(all_files), 40)]
 
-        for idx, chunk in enumerate(chunks, start=1):
-            user_message = f"Sort this folder: {self.folder_path} with the contents: {chunk}."
-            if self.user_prompt:
-                user_message += f" {self.user_prompt}"
+            for idx, chunk in enumerate(chunks, start=1):
+                user_message = f"Sort this folder: {self.folder_path} with the contents: {chunk}."
+                if self.user_prompt:
+                    user_message += f" {self.user_prompt}"
 
-            self.progress.emit(f"Processing chunk {idx} of {len(chunks)}...")
+                self.progress.emit(f"Processing chunk {idx} of {len(chunks)}...")
 
-            message = self.sortly.sort_folder(user_prompt=user_message)
+                message = self.sortly.sort_folder(user_prompt=user_message)
 
-            if message is None:
-                self.progress.emit("Error: Failed to sort files. Check API key.")
-                return
+                if message is None:
+                    self.progress.emit("Error: Failed to sort files. Check API key.")
+                    return
 
-            self.progress.emit(f"Chunk {idx} done: {message}")
+                self.progress.emit(f"Chunk {idx} done: {message}")
 
-        self.finished.emit("All chunks sorted.")
+            self.finished.emit("All chunks sorted.")
+        except Exception as e:
+            import traceback
+            error = f"Exception occurred:\n{traceback.format_exc()}"
+            self.progress.emit(error)
 
 class SortlyApp(QWidget):
     def __init__(self):

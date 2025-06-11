@@ -39,23 +39,28 @@ class Sortly:
     """
 
     def sort_folder(self, user_prompt: str):
-        tools = self.registry.to_openai_tools()
-        result = self.agent.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": self.system_instruction},
-                {"role": "user", "content": user_prompt},
-            ],
-            tools=tools,
-            temperature=0.7,
-        )
-        message = result.choices[0].message
-        if message.tool_calls:
-            for tool_call in message.tool_calls:
-                self.call_tool(tool_call)
-                return f"{message.content}, \n I have sorted the files based on the provided folder structure."
-            print("No tools called")
-            return message
+        try:
+            tools = self.registry.to_openai_tools()
+            result = self.agent.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": self.system_instruction},
+                    {"role": "user", "content": user_prompt},
+                ],
+                tools=tools,
+                temperature=0.7,
+                timeout=20,
+            )
+            message = result.choices[0].message
+            if message.tool_calls:
+                for tool_call in message.tool_calls:
+                    self.call_tool(tool_call)
+                    return f"{message.content}, \n I have sorted the files based on the provided folder structure."
+                print("No tools called")
+                return message
+        except Exception as e:
+            print(f"Error during sorting: {e}")
+            return f"An error occurred while sorting or timed out after 20 seconds: {e}"
 
     def call_tool(self, tool_call):
         tool_name = tool_call.function.name

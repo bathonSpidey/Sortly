@@ -1,6 +1,6 @@
 openai
 asyncio
-pyinstaller
+cx-Freeze
 LLMClassBasedToolRegistry
 pyside6
 python-dotenv

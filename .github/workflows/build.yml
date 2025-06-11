@@ -26,10 +26,13 @@ jobs:
 
     - name: Build with PyInstaller
       run: |
-        pyinstaller app.spec
+        python setup.py build
+
+    - name: Zip build output
+      run: Compress-Archive -Path build/exe.win-amd64-3.11/* -DestinationPath build/Sortly.zip
 
     - name: Upload EXE Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Sortly
-        path: dist/app.exe
+        path: build/Sortly.zip

@@ -62,7 +62,7 @@ class SortWorker(QThread):
             self.finished.emit("All chunks sorted.")
         except Exception as e:
             import traceback
-            error = f"Exception occurred:\n{traceback.format_exc()}"
+            error = f"Exception occurred:\n{traceback.format_exc()} api_key: {os.getenv('OPENAI_API_KEY')}\nError: {str(e)}"
             self.progress.emit(error)
 
 class SortlyApp(QWidget):
@@ -115,14 +115,14 @@ class SortlyApp(QWidget):
         title_separator.setStyleSheet("background-color: #cccccc;" if not self.is_dark else "background-color: #555;")
         main_layout.addWidget(title_separator)
         
-        current_key = os.getenv("OPENAI_API_KEY", "Please set your API key in the environment variables.")
+        self.current_key = os.getenv("OPENAI_API_KEY", "Please set your API key in the environment variables.")
 
     # Prepare display key: first 4 chars + '******' if key is longer than 4, else show as is
         api_row = QHBoxLayout()
-        if len(current_key) > 4 and "Please" not in current_key:
-            display_key = current_key[:4] + "******"
+        if len(self.current_key) > 4 and "Please" not in self.current_key:
+            display_key = self.current_key[:4] + "******"
         else:
-            display_key = current_key
+            display_key = self.current_key
 
         # Create QLineEdit initialized with masked key
         self.api_key_input = QLineEdit()
@@ -176,9 +176,8 @@ class SortlyApp(QWidget):
         
         
     def save_api_key(self):
-        api_key = self.api_key_input.text().strip()
-        if api_key:
-            os.environ["api"] = api_key
+        self.self.current_key = self.api_key_input.text().strip()
+        if self.current_key:
             QMessageBox.information(self, "API Key Saved", "API key has been saved temporarily for this session.")
         else:
             QMessageBox.warning(self, "Invalid", "Please enter a valid API key.")

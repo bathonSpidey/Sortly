@@ -36,10 +36,25 @@ jobs:
       with:
         name: Sortly
         path: build/Sortly.zip
-  release:
-    name: release
-    environment: release
+  tag:
+    runs-on: ubuntu-latest
     needs: build-windows
+    permissions:
+      contents: write  # Needed to create tags
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Bump version and push tag
+      uses: mathieudutour/github-tag-action@v6.1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        tag_prefix: 'v'
+        default_bump: patch
+  
+  release:
+    environment: release
+    needs: tag
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4

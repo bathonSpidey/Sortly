@@ -1,4 +1,9 @@
 ![Release Status](https://img.shields.io/github/actions/workflow/status/bathonSpidey/Sortly/build.yml)
+![GitHub Release](https://img.shields.io/github/v/release/bathonSpidey/Sortly)
+![GitHub deployments](https://img.shields.io/github/deployments/bathonSpidey/Sortly/release?labelColor=blue)
+
+
+
 
 
 # 📁 Sortly – AI-Powered Local File Organizer

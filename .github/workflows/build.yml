@@ -37,6 +37,8 @@ jobs:
         name: Sortly
         path: build/Sortly.zip
   release:
+    name: release
+    environment: release
     needs: build-windows
     runs-on: ubuntu-latest
     steps:
@@ -49,7 +51,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE }}
 
       - name: Upload release asset
         uses: softprops/action-gh-release@v2

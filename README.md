@@ -1,3 +1,6 @@
+![Release Status](https://img.shields.io/github/actions/workflow/status/bathonSpidey/Sortly/build.yml)
+
+
 # 📁 Sortly – AI-Powered Local File Organizer
 
 **Sortly** is an intelligent agent that uses an OpenAI-compatible LLM to analyze and reorganize your local files into meaningful folders. You provide a folder path and a list of file names, and the AI suggests and applies a logical folder structure based on file types, name patterns, and context.

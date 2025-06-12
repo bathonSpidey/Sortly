@@ -23,18 +23,25 @@ python -m venv .venv
 source .venv/bin/activate  # or `.venv\Scripts\activate` on Windows
 pip install -r requirements.txt
 ```
+and then run:
+
+```bash
+python app.py
+```
 
 ## 📦 Alternatively you can Build the .exe and use it.
 
-Ensure that you followed the above installation steps. 
-Run
+Ensure that you followed the above installation steps first upto pip install -r requirements.txt . 
+Then run
 ```bash
 python setup.py build
 ```
 This will generate a build folder inside navigate to:
+<pre>
 📁 build/
     └── 📁 exe.win-amd64-3.11
         └── sortly.exe
+</pre>
 
 You can double click and run it. Have fun cleaning your folders
 
@@ -57,10 +64,11 @@ Sortly instructs the AI agent to:
 
 Sortly might create folders like:
 
+<pre> 
 📁 Invoices/
     └── invoice_2024_01.pdf
     └── invoice_2024_02.pdf
-
+    
 📁 Documents/
     └── resume.pdf
     └── notes.txt
@@ -70,6 +78,7 @@ Sortly might create folders like:
 
 📁 Music/
     └── song.mp3
+    </pre>
 
 
 

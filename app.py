@@ -41,8 +41,9 @@ class SortWorker(QThread):
 
     def run(self):
         try:
+            chunk_size = 100  # Process files in chunks of 100
             all_files = os.listdir(self.folder_path)
-            chunks = [all_files[i:i + 40] for i in range(0, len(all_files), 40)]
+            chunks = [all_files[i:i + chunk_size] for i in range(0, len(all_files), chunk_size)]
 
             for idx, chunk in enumerate(chunks, start=1):
                 user_message = f"Sort this folder: {self.folder_path} with the contents: {chunk}."
@@ -138,7 +139,7 @@ class SortlyApp(QWidget):
         
         option_label = QLabel("Select model:")
         self.option_dropdown = QComboBox()
-        self.option_dropdown.addItems(["gemini-2.0-flash", "gpt-4.1", "o4-mini", "local_lm_studio"])
+        self.option_dropdown.addItems(self.supported_models.keys())
         self.option_dropdown.setFixedWidth(140)
         self.option_dropdown.currentTextChanged.connect(self.on_option_changed)
         api_row.addStretch()  # Push dropdown to right
@@ -169,9 +170,19 @@ class SortlyApp(QWidget):
         main_layout.addWidget(self.sort_button, alignment=Qt.AlignCenter)
 
         self.folder_path = None
+        self.model = "gemini-2.0-flash"
+        self.endpoint = self.supported_models.get(self.model, "https://generativelanguage.googleapis.com/v1beta/openai/")
         self.files_content = []
 
         self.apply_theme()
+        
+    supported_models = {
+        "gemini-2.0-flash": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "gpt-4.1": "https://api.openai.com/v1/",
+        "gpt-4o": "https://api.openai.com/v1/",
+        "o4-mini": "https://api.openai.com/v1/",
+        "local_lm_studio": "localhost:1234/v1",
+    }
         
         
         
@@ -183,7 +194,9 @@ class SortlyApp(QWidget):
             QMessageBox.warning(self, "Invalid", "Please enter a valid API key.")
             
     def on_option_changed(self, text):
-        print(f"Dropdown option changed to: {text}")
+        print(f"Model option changed to: {text} the endpoint that will be used is: {self.supported_models.get(text)}")
+        self.model = text
+        self.endpoint = self.supported_models.get(text)
 
     def toggle_theme(self):
         self.is_dark = not self.is_dark
@@ -232,7 +245,7 @@ class SortlyApp(QWidget):
             self.text_input.append("Starting sort...")
 
             user_prompt = self.text_input.toPlainText()
-            sortly = Sortly(os.getenv("OPENAI_API_KEY"))
+            sortly = Sortly(os.getenv("OPENAI_API_KEY"), model=self.model, base_url=self.endpoint)
 
             self.worker = SortWorker(self.folder_path, user_prompt, sortly)
             self.worker.progress.connect(self.update_progress)

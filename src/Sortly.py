@@ -34,8 +34,9 @@ class Sortly:
       - Folder names should be descriptive (Maximum 3 words) and meaningful, not just file extensions.
       - Keep original file names intact; do not rename files.
       - If there are existing folders do not rename or move them. try to put the files in the existing folders if it matches the context.
-      - If there are files that don’t clearly belong in a category, place them into an "Misc" folder. But before putting any file in that check if it can be put in any existing files.
-      - You do not have to arrange the existing folders. Do not include them unless they can be combined in a meaningful way. 
+      - If there are files that don’t clearly belong in a category try to match it with a existing folder and if not do not include it at all.
+      - Do put just only one file in a folder. If the file is not related to any folder, do not include it in the folder structure.
+      - You do not have to arrange the existing folders. Do not combine them unless they can be combined in a meaningful way. 
     """
 
     def sort_folder(self, user_prompt: str):
@@ -84,6 +85,9 @@ class Sortly:
             Done: Message
         """
         for folder_name, file_list in folder_structure.items():
+            if "existi" in folder_name.lower():
+                # Skip existing folders
+                continue
             target_folder_path = os.path.join(root_folder_path, folder_name)
             os.makedirs(target_folder_path, exist_ok=True)
 
